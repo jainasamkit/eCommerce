@@ -1,5 +1,5 @@
-import { Schema, model } from "mongoose";
-import bcrypt from "bcrypt";
+import { Schema, model } from 'mongoose';
+import bcrypt from 'bcrypt';
 const userSchema = new Schema(
   {
     name: {
@@ -13,7 +13,7 @@ const userSchema = new Schema(
     role: {
       type: String,
       required: true,
-      enum: ["admin", "user"],
+      enum: ['admin', 'user'],
     },
     password: {
       type: String,
@@ -26,13 +26,13 @@ const userSchema = new Schema(
       type: String,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-userSchema.pre("save", async function () {
-  if (this.isModified("password")) {
+userSchema.pre('save', async function () {
+  if (this.isModified('password')) {
     this.password = await bcrypt.hash(this.password, 10);
   }
 });
 
-export const User = model("User", userSchema);
+export const User = model('User', userSchema);

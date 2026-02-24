@@ -1,6 +1,7 @@
-import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
-import { env } from "../config/env.ts";
+import type { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
+import { env } from '../config/env.ts';
+import { ApiError } from '../utils/ApiError.ts';
 
 const { JWT_SECRET } = env;
 
@@ -9,32 +10,34 @@ interface IUserToken {
   role: string;
 }
 
-const authenticateUser = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Unauthorized" });
+const authenticateUser = async (req: Request, _: Response, next: NextFunction) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return next(ApiError.unauthorized('Authorization header missing.'));
+    }
+
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+      return next(ApiError.unauthorized('Authorisation Token missing'));
+    }
+
+    const decodedToken = jwt.verify(token, JWT_SECRET!) as IUserToken;
+    req.user = decodedToken;
+    next();
+  } catch {
+    return next(ApiError.unauthorized('Invalid or expired token'));
   }
-  const token = authHeader.split(" ")[1];
-  if (!token) {
-    return res.status(401).json({ message: "Token missing" });
-  }
-  const decodedToken = jwt.verify(token, JWT_SECRET!) as IUserToken;
-  req.user = decodedToken;
-  next();
 };
 
 const authoriseUser = async (
   req: Request,
-  res: Response,
+  _: Response,
   next: NextFunction,
-  roles: Array<string>
+  roles: Array<string>,
 ) => {
   if (!req.user || !roles.includes(req.user.role)) {
-    return res.status(403).json({ message: "Forbidden" });
+    return next(ApiError.forbidden('Forbidden'));
   }
   next();
 };
