@@ -18,7 +18,31 @@ const registerUserSchema = z
   })
   .strict();
 
+const loginUserSchema = z
+  .object({
+    email: z.string().trim().toLowerCase().email('Invalid email address'),
+    password: z.string().min(1, 'Password is required'),
+  })
+  .strict();
+
+const refreshTokenSchema = z
+  .object({
+    refreshToken: z.string().trim().min(1, 'Refresh token is required'),
+  })
+  .strict();
+
+const updateCurrentUserSchema = z
+  .object({
+    name: z.string().trim().min(2, 'Name must be at least 2 characters').optional(),
+    profilePic: z.string().trim().url('Profile pic must be a valid URL').optional(),
+  })
+  .strict();
+
 type RegisterUserBody = z.infer<typeof registerUserSchema>;
+type LoginUserBody = z.infer<typeof loginUserSchema>;
+type RefreshTokenBody = z.infer<typeof refreshTokenSchema>;
+type UpdateCurrentUserBody = z.infer<typeof updateCurrentUserSchema>;
 
 export { registerUserSchema };
-export type { RegisterUserBody };
+export { loginUserSchema, refreshTokenSchema, updateCurrentUserSchema };
+export type { RegisterUserBody, LoginUserBody, RefreshTokenBody, UpdateCurrentUserBody };

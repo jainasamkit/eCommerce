@@ -1,9 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import { env } from '../config/env.ts';
 import { ApiError } from '../utils/ApiError.ts';
-
-const { JWT_SECRET } = env;
+import { verifyAccessToken } from '../services/token.service.ts';
 
 interface IUserToken {
   id: string;
@@ -22,7 +19,7 @@ const authenticateUser = async (req: Request, _: Response, next: NextFunction) =
       return next(ApiError.unauthorized('Authorisation Token missing'));
     }
 
-    const decodedToken = jwt.verify(token, JWT_SECRET!) as IUserToken;
+    const decodedToken = verifyAccessToken(token) as IUserToken;
     req.user = decodedToken;
     next();
   } catch {
@@ -30,12 +27,7 @@ const authenticateUser = async (req: Request, _: Response, next: NextFunction) =
   }
 };
 
-const authoriseUser = async (
-  req: Request,
-  _: Response,
-  next: NextFunction,
-  roles: Array<string>,
-) => {
+const authoriseUser = (roles: Array<string>) => (req: Request, _: Response, next: NextFunction) => {
   if (!req.user || !roles.includes(req.user.role)) {
     return next(ApiError.forbidden('Forbidden'));
   }
