@@ -4,13 +4,15 @@ import { ApiError } from '../utils/ApiError.ts';
 
 const ensureAccessTokenSecret = () => {
   if (!env.ACCESS_TOKEN_SECRET) {
-    throw ApiError.internal('ACCESS_TOKEN_SECRET is not configured');
+    console.error('Token configuration error: ACCESS_TOKEN_SECRET is not configured');
+    throw ApiError.internal('Token configuration error');
   }
 };
 
 const ensureRefreshTokenSecret = () => {
   if (!env.REFRESH_TOKEN_SECRET) {
-    throw ApiError.internal('REFRESH_TOKEN_SECRET is not configured');
+    console.error('Token configuration error: REFRESH_TOKEN_SECRET is not configured');
+    throw ApiError.internal('Token configuration error');
   }
 };
 

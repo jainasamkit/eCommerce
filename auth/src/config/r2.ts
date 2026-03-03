@@ -10,11 +10,13 @@ const getR2Client = () => {
   }
 
   if (!env.R2_ACCESS_KEY || !env.R2_SECRET_KEY) {
-    throw ApiError.internal('R2 credentials are not configured');
+    console.error('Storage configuration error: R2_ACCESS_KEY or R2_SECRET_KEY is not configured');
+    throw ApiError.internal('Storage configuration error');
   }
 
   if (!env.R2_ENDPOINT) {
-    throw ApiError.internal('R2 endpoint is not configured');
+    console.error('Storage configuration error: R2_ENDPOINT is not configured');
+    throw ApiError.internal('Storage configuration error');
   }
 
   r2Client = new S3Client({

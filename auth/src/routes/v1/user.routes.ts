@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import {
-  getCurrentUser,
+  getProfile,
   loginUser,
   logoutUser,
   refreshAccessToken,
   registerUser,
-  updateCurrentUser,
+  updateProfile,
 } from '../../controllers/user.controller.ts';
 import { authenticateUser, authoriseUser } from '../../middleware/auth.middleware.ts';
 import { createSingleFileUpload } from '../../middleware/multer.middleware.ts';
@@ -14,7 +14,7 @@ import {
   loginUserSchema,
   refreshTokenSchema,
   registerUserSchema,
-  updateCurrentUserSchema,
+  updateProfileSchema,
 } from '../../validators/user.schema.ts';
 
 const userRouter = Router();
@@ -24,15 +24,15 @@ userRouter.post('/register', uploadProfilePic, validateBody(registerUserSchema),
 userRouter.post('/login', validateBody(loginUserSchema), loginUser);
 userRouter.post('/refresh-token', validateBody(refreshTokenSchema), refreshAccessToken);
 
-userRouter.use(['/logout', '/me'], authenticateUser, authoriseUser(['user']));
+userRouter.use(['/logout', '/profile'], authenticateUser, authoriseUser(['user']));
 
 userRouter.post('/logout', logoutUser);
-userRouter.get('/me', getCurrentUser);
+userRouter.get('/profile', getProfile);
 userRouter.patch(
-  '/me',
+  '/profile',
   uploadProfilePic,
-  validateBody(updateCurrentUserSchema),
-  updateCurrentUser,
+  validateBody(updateProfileSchema, { requireNonEmptyBody: true, allowFileAsBody: true }),
+  updateProfile,
 );
 
 export { userRouter };

@@ -19,8 +19,8 @@ const authenticateUser = async (req: Request, _: Response, next: NextFunction) =
       return next(ApiError.unauthorized('Authorisation Token missing'));
     }
 
-    const decodedToken = verifyAccessToken(token) as IUserToken;
-    req.user = decodedToken;
+    const userDetails = verifyAccessToken(token) as IUserToken;
+    req.user = userDetails;
     next();
   } catch {
     return next(ApiError.unauthorized('Invalid or expired token'));

@@ -3,40 +3,51 @@ import bcrypt from 'bcrypt';
 import type { JwtPayload } from 'jsonwebtoken';
 import {
   createUser,
-  findUserByEmail,
-  findUserById,
+  findUser,
   updateUserById,
   updateUserRefreshToken,
 } from '../repository/user.repository.ts';
 import type {
   LoginUserBody,
   RefreshTokenBody,
-  RegisterUserBody,
-  UpdateCurrentUserBody,
 } from '../validators/user.schema.ts';
+import type {
+  CreateUserResult,
+  FindUserResult,
+  GetProfileResponse,
+  LoginUserResponse,
+  RefreshAccessTokenResponse,
+  RegisterUserResponse,
+  RegisterUserServicePayload,
+  UpdateUserByIdResult,
+  UpdateProfileServicePayload,
+  UpdateUserPayload,
+  UpdateProfileResponse,
+} from '../types/user.types.ts';
 import {
   generateAccessToken,
   generateRefreshToken,
   verifyRefreshToken,
 } from './token.service.ts';
 
-const registerUserService = async (payload: RegisterUserBody) => {
-  const existingUser = await findUserByEmail(payload.email);
+const registerUser = async (
+  payload: RegisterUserServicePayload,
+): Promise<RegisterUserResponse> => {
+  const existingUser: FindUserResult = await findUser({ email: payload.email });
 
   if (existingUser) {
     throw ApiError.badRequest('User already exists with this email');
   }
 
-  const user = await createUser({
+  const user: CreateUserResult = await createUser({
     name: payload.name,
     email: payload.email,
     password: payload.password,
-    role: 'user',
     ...(payload.profilePic ? { profilePic: payload.profilePic } : {}),
   });
 
-  return {
-    id: user._id,
+  const createdUserResponse: RegisterUserResponse = {
+    id: String(user._id),
     name: user.name,
     email: user.email,
     role: user.role,
@@ -44,10 +55,12 @@ const registerUserService = async (payload: RegisterUserBody) => {
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };
+
+  return createdUserResponse;
 };
 
-const loginUserService = async (payload: LoginUserBody) => {
-  const user = await findUserByEmail(payload.email);
+const loginUser = async (payload: LoginUserBody): Promise<LoginUserResponse> => {
+  const user: FindUserResult = await findUser({ email: payload.email });
   if (!user) {
     throw ApiError.unauthorized('Invalid email or password');
   }
@@ -63,9 +76,9 @@ const loginUserService = async (payload: LoginUserBody) => {
 
   await updateUserRefreshToken(userId, refreshToken);
 
-  return {
+  const loginResponse: LoginUserResponse = {
     user: {
-      id: user._id,
+      id: String(user._id),
       name: user.name,
       email: user.email,
       role: user.role,
@@ -76,9 +89,13 @@ const loginUserService = async (payload: LoginUserBody) => {
     accessToken,
     refreshToken,
   };
+
+  return loginResponse;
 };
 
-const refreshAccessTokenService = async (payload: RefreshTokenBody) => {
+const refreshAccessToken = async (
+  payload: RefreshTokenBody,
+): Promise<RefreshAccessTokenResponse> => {
   let decoded: JwtPayload;
   try {
     decoded = verifyRefreshToken(payload.refreshToken);
@@ -91,7 +108,7 @@ const refreshAccessTokenService = async (payload: RefreshTokenBody) => {
     throw ApiError.unauthorized('Invalid refresh token');
   }
 
-  const user = await findUserById(userId);
+  const user: FindUserResult = await findUser({ id: userId });
   if (!user || user.refreshToken !== payload.refreshToken) {
     throw ApiError.unauthorized('Invalid refresh token');
   }
@@ -101,24 +118,26 @@ const refreshAccessTokenService = async (payload: RefreshTokenBody) => {
 
   await updateUserRefreshToken(userId, newRefreshToken);
 
-  return {
+  const tokenResponse: RefreshAccessTokenResponse = {
     accessToken: newAccessToken,
     refreshToken: newRefreshToken,
   };
+
+  return tokenResponse;
 };
 
-const logoutUserService = async (userId: string) => {
+const logoutUser = async (userId: string) => {
   await updateUserRefreshToken(userId, null);
 };
 
-const getCurrentUserService = async (userId: string) => {
-  const user = await findUserById(userId);
+const getProfile = async (userId: string): Promise<GetProfileResponse> => {
+  const user: FindUserResult = await findUser({ id: userId });
   if (!user) {
     throw ApiError.notFound('User not found');
   }
 
-  return {
-    id: user._id,
+  const profileResponse: GetProfileResponse = {
+    id: String(user._id),
     name: user.name,
     email: user.email,
     role: user.role,
@@ -126,10 +145,15 @@ const getCurrentUserService = async (userId: string) => {
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };
+
+  return profileResponse;
 };
 
-const updateCurrentUserService = async (userId: string, payload: UpdateCurrentUserBody) => {
-  const updatePayload: { name?: string; profilePic?: string } = {};
+const updateProfile = async (
+  userId: string,
+  payload: UpdateProfileServicePayload,
+): Promise<UpdateProfileResponse> => {
+  const updatePayload: UpdateUserPayload = {};
 
   if (payload.name !== undefined) {
     updatePayload.name = payload.name;
@@ -139,17 +163,13 @@ const updateCurrentUserService = async (userId: string, payload: UpdateCurrentUs
     updatePayload.profilePic = payload.profilePic;
   }
 
-  if (Object.keys(updatePayload).length === 0) {
-    throw ApiError.badRequest('No profile fields to update');
-  }
-
-  const updatedUser = await updateUserById(userId, updatePayload);
+  const updatedUser: UpdateUserByIdResult = await updateUserById(userId, updatePayload);
   if (!updatedUser) {
     throw ApiError.notFound('User not found');
   }
 
-  return {
-    id: updatedUser._id,
+  const updatedUserResponse: UpdateProfileResponse = {
+    id: String(updatedUser._id),
     name: updatedUser.name,
     email: updatedUser.email,
     role: updatedUser.role,
@@ -157,13 +177,15 @@ const updateCurrentUserService = async (userId: string, payload: UpdateCurrentUs
     createdAt: updatedUser.createdAt,
     updatedAt: updatedUser.updatedAt,
   };
+
+  return updatedUserResponse;
 };
 
 export {
-  registerUserService,
-  loginUserService,
-  refreshAccessTokenService,
-  logoutUserService,
-  getCurrentUserService,
-  updateCurrentUserService,
+  registerUser,
+  loginUser,
+  refreshAccessToken,
+  logoutUser,
+  getProfile,
+  updateProfile,
 };

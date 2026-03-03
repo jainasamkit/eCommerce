@@ -4,6 +4,7 @@ import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { getR2Client } from '../config/r2.ts';
 import { env } from '../config/env.ts';
 import { ApiError } from '../utils/ApiError.ts';
+import type { UploadFileResponse } from '../types/storage.types.ts';
 
 const normalizeBaseUrl = (url: string) => url.replace(/\/+$/, '');
 
@@ -15,9 +16,13 @@ const buildPublicUrl = (key: string) => {
   return key;
 };
 
-const uploadFileToR2 = async (file: Express.Multer.File, folder = 'uploads') => {
+const uploadFileToR2 = async (
+  file: Express.Multer.File,
+  folder = 'uploads',
+): Promise<UploadFileResponse> => {
   if (!env.R2_BUCKET) {
-    throw ApiError.internal('R2 bucket name is not configured');
+    console.error('Storage configuration error: R2_BUCKET is not configured');
+    throw ApiError.internal('Storage configuration error');
   }
 
   const sanitizedFolder = folder.replace(/^\/+|\/+$/g, '');
@@ -33,10 +38,14 @@ const uploadFileToR2 = async (file: Express.Multer.File, folder = 'uploads') => 
       }),
     );
 
-    return {
+    const uploadResponse: UploadFileResponse = {
       key,
       url: buildPublicUrl(key),
     };
+
+    return uploadResponse;
+  } catch {
+    throw ApiError.internal('Error uploading profile picture');
   } finally {
     await unlink(file.path).catch(() => undefined);
   }
