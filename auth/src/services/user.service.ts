@@ -4,6 +4,8 @@ import type { JwtPayload } from 'jsonwebtoken';
 import {
   createUser,
   findUser,
+  findUserForLogin,
+  findUserForRefreshToken,
   updateUserById,
   updateUserRefreshToken,
 } from '../repository/user.repository.ts';
@@ -12,17 +14,14 @@ import type {
   RefreshTokenBody,
 } from '../validators/user.schema.ts';
 import type {
-  CreateUserResult,
-  FindUserResult,
-  GetProfileResponse,
   LoginUserResponse,
   RefreshAccessTokenResponse,
   RegisterUserResponse,
-  RegisterUserServicePayload,
-  UpdateUserByIdResult,
-  UpdateProfileServicePayload,
-  UpdateUserPayload,
-  UpdateProfileResponse,
+  CreateUserInput,
+  UpdateUserProfileInput,
+  UserDocument,
+  UserLookupFilters,
+  UserProfileResponse,
 } from '../types/user.types.ts';
 import {
   generateAccessToken,
@@ -31,15 +30,15 @@ import {
 } from './token.service.ts';
 
 const registerUser = async (
-  payload: RegisterUserServicePayload,
+  payload: CreateUserInput,
 ): Promise<RegisterUserResponse> => {
-  const existingUser: FindUserResult = await findUser({ email: payload.email });
+  const existingUser: UserDocument | null = await findUser({ email: payload.email });
 
   if (existingUser) {
     throw ApiError.badRequest('User already exists with this email');
   }
 
-  const user: CreateUserResult = await createUser({
+  const user: UserDocument = await createUser({
     name: payload.name,
     email: payload.email,
     password: payload.password,
@@ -60,7 +59,7 @@ const registerUser = async (
 };
 
 const loginUser = async (payload: LoginUserBody): Promise<LoginUserResponse> => {
-  const user: FindUserResult = await findUser({ email: payload.email });
+  const user: UserDocument | null = await findUserForLogin(payload.email);
   if (!user) {
     throw ApiError.unauthorized('Invalid email or password');
   }
@@ -108,7 +107,7 @@ const refreshAccessToken = async (
     throw ApiError.unauthorized('Invalid refresh token');
   }
 
-  const user: FindUserResult = await findUser({ id: userId });
+  const user: UserDocument | null = await findUserForRefreshToken(userId);
   if (!user || user.refreshToken !== payload.refreshToken) {
     throw ApiError.unauthorized('Invalid refresh token');
   }
@@ -130,30 +129,21 @@ const logoutUser = async (userId: string) => {
   await updateUserRefreshToken(userId, null);
 };
 
-const getProfile = async (userId: string): Promise<GetProfileResponse> => {
-  const user: FindUserResult = await findUser({ id: userId });
+const getProfile = async (userId: string): Promise<UserProfileResponse> => {
+  const userLookupPayload: UserLookupFilters = { _id: userId };
+  const user: UserDocument | null = await findUser(userLookupPayload);
   if (!user) {
     throw ApiError.notFound('User not found');
   }
 
-  const profileResponse: GetProfileResponse = {
-    id: String(user._id),
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    profilePic: user.profilePic ?? null,
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt,
-  };
-
-  return profileResponse;
+  return user;
 };
 
 const updateProfile = async (
   userId: string,
-  payload: UpdateProfileServicePayload,
-): Promise<UpdateProfileResponse> => {
-  const updatePayload: UpdateUserPayload = {};
+  payload: UpdateUserProfileInput,
+): Promise<UserProfileResponse> => {
+  const updatePayload: UpdateUserProfileInput = {};
 
   if (payload.name !== undefined) {
     updatePayload.name = payload.name;
@@ -163,22 +153,12 @@ const updateProfile = async (
     updatePayload.profilePic = payload.profilePic;
   }
 
-  const updatedUser: UpdateUserByIdResult = await updateUserById(userId, updatePayload);
+  const updatedUser: UserDocument | null = await updateUserById(userId, updatePayload);
   if (!updatedUser) {
     throw ApiError.notFound('User not found');
   }
 
-  const updatedUserResponse: UpdateProfileResponse = {
-    id: String(updatedUser._id),
-    name: updatedUser.name,
-    email: updatedUser.email,
-    role: updatedUser.role,
-    profilePic: updatedUser.profilePic ?? null,
-    createdAt: updatedUser.createdAt,
-    updatedAt: updatedUser.updatedAt,
-  };
-
-  return updatedUserResponse;
+  return updatedUser;
 };
 
 export {

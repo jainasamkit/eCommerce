@@ -1,17 +1,28 @@
 import dotenv from 'dotenv';
+import { z } from 'zod';
 
 dotenv.config();
 
-export const env = {
-  PORT: process.env.PORT || 3000,
-  MONGO_URI: process.env.MONGO_URI,
-  ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET,
-  REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET,
-  ACCESS_TOKEN_EXPIRY: process.env.ACCESS_TOKEN_EXPIRY || '1d',
-  REFRESH_TOKEN_EXPIRY: process.env.REFRESH_TOKEN_EXPIRY || '7d',
-  R2_ACCESS_KEY: process.env.R2_ACCESS_KEY,
-  R2_SECRET_KEY: process.env.R2_SECRET_KEY,
-  R2_BUCKET: process.env.R2_BUCKET,
-  R2_PUBLIC_URL: process.env.R2_PUBLIC_URL,
-  R2_ENDPOINT: process.env.R2_ENDPOINT,
-};
+const envSchema = z.object({
+  PORT: z.string().default('3000').transform(Number),
+  MONGO_URI: z.string(),
+  ACCESS_TOKEN_SECRET: z.string(),
+  REFRESH_TOKEN_SECRET: z.string(),
+  ACCESS_TOKEN_EXPIRY: z.string().default('1d'),
+  REFRESH_TOKEN_EXPIRY: z.string().default('7d'),
+  R2_ACCESS_KEY: z.string(),
+  R2_SECRET_KEY: z.string(),
+  R2_BUCKET: z.string(),
+  R2_PUBLIC_URL: z.string(),
+  R2_ENDPOINT: z.string(),
+});
+
+const parsedEnv = envSchema.safeParse(process.env);
+
+if (!parsedEnv.success) {
+  console.error('Invalid environment variables');
+  console.error(parsedEnv.error.format());
+  process.exit(1);
+}
+
+export const env = parsedEnv.data;

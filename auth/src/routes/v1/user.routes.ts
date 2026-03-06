@@ -10,6 +10,7 @@ import {
 import { authenticateUser, authoriseUser } from '../../middleware/auth.middleware.ts';
 import { createSingleFileUpload } from '../../middleware/multer.middleware.ts';
 import { validateBody } from '../../middleware/validate.middleware.ts';
+import { UserRole } from '../../types/user.types.ts';
 import {
   loginUserSchema,
   refreshTokenSchema,
@@ -24,7 +25,7 @@ userRouter.post('/register', uploadProfilePic, validateBody(registerUserSchema),
 userRouter.post('/login', validateBody(loginUserSchema), loginUser);
 userRouter.post('/refresh-token', validateBody(refreshTokenSchema), refreshAccessToken);
 
-userRouter.use(['/logout', '/profile'], authenticateUser, authoriseUser(['user']));
+userRouter.use(['/logout', '/profile'], authenticateUser, authoriseUser([UserRole.USER]));
 
 userRouter.post('/logout', logoutUser);
 userRouter.get('/profile', getProfile);

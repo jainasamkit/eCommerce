@@ -1,11 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { ApiError } from '../utils/ApiError.ts';
 import { verifyAccessToken } from '../services/token.service.ts';
-
-interface IUserToken {
-  id: string;
-  role: string;
-}
+import type { AuthUser } from '../types/request.types.ts';
 
 const authenticateUser = async (req: Request, _: Response, next: NextFunction) => {
   try {
@@ -19,7 +15,7 @@ const authenticateUser = async (req: Request, _: Response, next: NextFunction) =
       return next(ApiError.unauthorized('Authorisation Token missing'));
     }
 
-    const userDetails = verifyAccessToken(token) as IUserToken;
+    const userDetails = verifyAccessToken(token) as AuthUser;
     req.user = userDetails;
     next();
   } catch {

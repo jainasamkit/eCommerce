@@ -1,12 +1,17 @@
 import type { Types } from 'mongoose';
 
-type UserRole = 'user' | 'admin';
+export enum UserRole {
+  USER = 'user',
+  ADMIN = 'admin',
+}
+
+type UserRoleValue = `${UserRole}`;
 
 type UserDocument = {
   _id: Types.ObjectId;
   name: string;
   email: string;
-  role: UserRole;
+  role: UserRoleValue;
   password: string;
   profilePic?: string | null;
   refreshToken?: string | null;
@@ -14,41 +19,24 @@ type UserDocument = {
   updatedAt: Date;
 };
 
-type CreateUserPayload = {
+type CreateUserInput = {
   name: string;
   email: string;
   password: string;
   profilePic?: string;
 };
 
-type UpdateUserPayload = {
+type UpdateUserProfileInput = {
   name?: string;
   profilePic?: string;
 };
 
-type RegisterUserServicePayload = {
-  name: string;
-  email: string;
-  password: string;
-  profilePic?: string;
-};
-
-type UpdateProfileServicePayload = {
-  name?: string;
-  profilePic?: string;
-};
-
-type FindUserPayload = {
-  id?: string;
+type UserLookupFilters = {
+  _id?: string;
   email?: string;
   name?: string;
-  role?: UserRole;
+  role?: UserRoleValue;
 };
-
-type FindUserResult = UserDocument | null;
-type CreateUserResult = UserDocument;
-type UpdateUserByIdResult = UserDocument | null;
-type UpdateUserRefreshTokenResult = UserDocument | null;
 
 type UserResponse = {
   id: string;
@@ -73,26 +61,17 @@ type RefreshAccessTokenResponse = {
   refreshToken: string;
 };
 
-type GetProfileResponse = UserResponse;
-
-type UpdateProfileResponse = UserResponse;
+type UserProfileResponse = UserDocument;
 
 export type {
-  UserRole,
+  UserRoleValue,
   UserDocument,
-  CreateUserPayload,
-  UpdateUserPayload,
-  RegisterUserServicePayload,
-  UpdateProfileServicePayload,
-  FindUserPayload,
-  FindUserResult,
-  CreateUserResult,
-  UpdateUserByIdResult,
-  UpdateUserRefreshTokenResult,
+  CreateUserInput,
+  UpdateUserProfileInput,
+  UserLookupFilters,
   UserResponse,
   RegisterUserResponse,
   LoginUserResponse,
   RefreshAccessTokenResponse,
-  GetProfileResponse,
-  UpdateProfileResponse,
+  UserProfileResponse,
 };

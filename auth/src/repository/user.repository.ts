@@ -1,55 +1,65 @@
 import { User } from '../model/user.model.ts';
 import { ApiError } from '../utils/ApiError.ts';
 import type {
-  CreateUserPayload,
-  CreateUserResult,
-  FindUserPayload,
-  FindUserResult,
-  UpdateUserByIdResult,
-  UpdateUserPayload,
-  UpdateUserRefreshTokenResult,
+  CreateUserInput,
+  UserLookupFilters,
+  UserDocument,
+  UpdateUserProfileInput,
 } from '../types/user.types.ts';
+import { UserRole } from '../types/user.types.ts';
 
-const findUser = async (payload: FindUserPayload): Promise<FindUserResult> => {
-  const query: Record<string, unknown> = {};
-
-  if (payload.id !== undefined) {
-    query._id = payload.id;
-  }
-  if (payload.email !== undefined) {
-    query.email = payload.email;
-  }
-  if (payload.name !== undefined) {
-    query.name = payload.name;
-  }
-  if (payload.role !== undefined) {
-    query.role = payload.role;
-  }
+const findUser = async (payload: UserLookupFilters): Promise<UserDocument | null> => {
+  const query: Record<string, unknown> = Object.fromEntries(
+    Object.entries(payload).filter(([, value]) => value !== undefined),
+  );
 
   if (Object.keys(query).length === 0) {
     console.error('Repository usage error: findUser called without filters');
     throw ApiError.internal('Unable to fetch user');
   }
 
-  return User.findOne(query);
+  return User.findOne(query).select('-password -refreshToken');
 };
 
-const createUser = async (payload: CreateUserPayload): Promise<CreateUserResult> => {
-  return User.create({
+const findUserForLogin = async (email: string): Promise<UserDocument | null> => {
+  return User.findOne({ email }).select('-refreshToken');
+};
+
+const findUserForRefreshToken = async (id: string): Promise<UserDocument | null> => {
+  return User.findById(id).select('-password');
+};
+
+const createUser = async (payload: CreateUserInput): Promise<UserDocument> => {
+  const createdUser = await User.create({
     ...payload,
-    role: 'user',
+    role: UserRole.USER,
   });
+  const user = await User.findById(createdUser._id).select('-password -refreshToken');
+  if (!user) {
+    throw ApiError.internal('Unable to create user');
+  }
+  return user;
 };
 
-const updateUserById = async (id: string, payload: UpdateUserPayload): Promise<UpdateUserByIdResult> => {
-  return User.findByIdAndUpdate(id, payload, { returnDocument: 'after' });
+const updateUserById = async (
+  id: string,
+  payload: UpdateUserProfileInput,
+): Promise<UserDocument | null> => {
+  return User.findByIdAndUpdate(id, payload, { returnDocument: 'after' }).select('-password -refreshToken');
 };
 
 const updateUserRefreshToken = async (
   id: string,
   refreshToken: string | null,
-): Promise<UpdateUserRefreshTokenResult> => {
-  return User.findByIdAndUpdate(id, { refreshToken }, { returnDocument: 'after' });
+): Promise<UserDocument | null> => {
+  return User.findByIdAndUpdate(id, { refreshToken }, { returnDocument: 'after' }).select('-password -refreshToken');
 };
 
-export { findUser, createUser, updateUserById, updateUserRefreshToken };
+export {
+  findUser,
+  findUserForLogin,
+  findUserForRefreshToken,
+  createUser,
+  updateUserById,
+  updateUserRefreshToken,
+};

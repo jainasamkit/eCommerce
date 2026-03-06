@@ -1,5 +1,7 @@
 import { Schema, model } from 'mongoose';
 import bcrypt from 'bcrypt';
+import { UserRole } from '../types/user.types.ts';
+
 const userSchema = new Schema(
   {
     name: {
@@ -13,7 +15,8 @@ const userSchema = new Schema(
     role: {
       type: String,
       required: true,
-      enum: ['admin', 'user'],
+      enum: Object.values(UserRole),
+      default: UserRole.USER,
     },
     password: {
       type: String,

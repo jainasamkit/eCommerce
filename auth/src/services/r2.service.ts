@@ -20,11 +20,6 @@ const uploadFileToR2 = async (
   file: Express.Multer.File,
   folder = 'uploads',
 ): Promise<UploadFileResponse> => {
-  if (!env.R2_BUCKET) {
-    console.error('Storage configuration error: R2_BUCKET is not configured');
-    throw ApiError.internal('Storage configuration error');
-  }
-
   const sanitizedFolder = folder.replace(/^\/+|\/+$/g, '');
   const key = `${sanitizedFolder}/${file.filename}`;
 
