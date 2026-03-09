@@ -1,3 +1,6 @@
 node_modules/
 .env
 dist/
+auth/public/temp/*
+!auth/public/temp/.gitkeep
+auth/postman/
