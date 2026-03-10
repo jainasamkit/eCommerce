@@ -15,6 +15,8 @@ type UserDocument = {
   password: string;
   profilePic?: string | null;
   refreshToken?: string | null;
+  passwordResetToken?: string | null;
+  passwordResetTokenExpiresAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -61,6 +63,10 @@ type RefreshAccessTokenResponse = {
   refreshToken: string;
 };
 
+type ForgotPasswordResponse = {
+  resetUrl: string | null;
+};
+
 type UserProfileResponse = UserDocument;
 
 export type {
@@ -73,5 +79,6 @@ export type {
   RegisterUserResponse,
   LoginUserResponse,
   RefreshAccessTokenResponse,
+  ForgotPasswordResponse,
   UserProfileResponse,
 };

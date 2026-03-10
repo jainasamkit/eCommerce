@@ -3,6 +3,7 @@ import { ApiResponse } from '../utils/ApiResponse.ts';
 import * as userService from '../services/user.service.ts';
 import type { UploadFileResponse } from '../types/storage.types.ts';
 import type {
+  ForgotPasswordResponse,
   LoginUserResponse,
   RefreshAccessTokenResponse,
   RegisterUserResponse,
@@ -14,8 +15,10 @@ import { uploadFileToR2 } from '../services/r2.service.ts';
 import { ApiError } from '../utils/ApiError.ts';
 import type {
   ChangePasswordBody,
+  ForgotPasswordBody,
   LoginUserBody,
   RefreshTokenBody,
+  ResetPasswordBody,
 } from '../validators/user.schema.ts';
 
 const registerUser = async (req: Request, res: Response) => {
@@ -44,6 +47,22 @@ const refreshAccessToken = async (req: Request, res: Response) => {
   const tokens: RefreshAccessTokenResponse = await userService.refreshAccessToken(payload);
 
   return res.status(200).json(ApiResponse.success(tokens, 'Token refreshed successfully'));
+};
+
+const forgotPassword = async (req: Request, res: Response) => {
+  const payload: ForgotPasswordBody = req.body;
+  const resetData: ForgotPasswordResponse = await userService.forgotPassword(payload);
+
+  return res
+    .status(200)
+    .json(ApiResponse.success(resetData, 'If the email exists, reset instructions were generated'));
+};
+
+const resetPassword = async (req: Request, res: Response) => {
+  const payload: ResetPasswordBody = req.body;
+  await userService.resetPassword(payload);
+
+  return res.status(200).json(ApiResponse.success(null, 'Password reset successfully'));
 };
 
 const logoutUser = async (req: Request, res: Response) => {
@@ -95,6 +114,8 @@ export {
   registerUser,
   loginUser,
   refreshAccessToken,
+  forgotPassword,
+  resetPassword,
   logoutUser,
   getProfile,
   updateProfile,

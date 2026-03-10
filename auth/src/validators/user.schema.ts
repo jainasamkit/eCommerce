@@ -32,6 +32,19 @@ const refreshTokenSchema = z
   })
   .strict();
 
+const forgotPasswordSchema = z
+  .object({
+    email: z.string().trim().toLowerCase().email('Invalid email address'),
+  })
+  .strict();
+
+const resetPasswordSchema = z
+  .object({
+    token: z.string().trim().min(1, 'Reset token is required'),
+    newPassword: strongPasswordSchema,
+  })
+  .strict();
+
 const updateProfileSchema = z
   .object({
     name: z.string().trim().min(2, 'Name must be at least 2 characters').optional(),
@@ -48,15 +61,26 @@ const changePasswordSchema = z
 type RegisterUserBody = z.infer<typeof registerUserSchema>;
 type LoginUserBody = z.infer<typeof loginUserSchema>;
 type RefreshTokenBody = z.infer<typeof refreshTokenSchema>;
+type ForgotPasswordBody = z.infer<typeof forgotPasswordSchema>;
+type ResetPasswordBody = z.infer<typeof resetPasswordSchema>;
 type UpdateProfileBody = z.infer<typeof updateProfileSchema>;
 type ChangePasswordBody = z.infer<typeof changePasswordSchema>;
 
 export { registerUserSchema };
-export { loginUserSchema, refreshTokenSchema, updateProfileSchema, changePasswordSchema };
+export {
+  loginUserSchema,
+  refreshTokenSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+  updateProfileSchema,
+  changePasswordSchema,
+};
 export type {
   RegisterUserBody,
   LoginUserBody,
   RefreshTokenBody,
+  ForgotPasswordBody,
+  ResetPasswordBody,
   UpdateProfileBody,
   ChangePasswordBody,
 };

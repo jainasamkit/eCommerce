@@ -1,22 +1,30 @@
 import { ApiError } from '../utils/ApiError.ts';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import type { JwtPayload } from 'jsonwebtoken';
 import {
   createUser,
   findUser,
+  findUserByEmailWithSensitiveFields,
   findUserByIdWithPassword,
   findUserForLogin,
   findUserForRefreshToken,
+  findUserByResetToken,
+  resetUserPasswordById,
   updateUserById,
   updateUserPasswordById,
+  updateUserPasswordResetToken,
   updateUserRefreshToken,
 } from '../repository/user.repository.ts';
 import type {
   ChangePasswordBody,
+  ForgotPasswordBody,
   LoginUserBody,
   RefreshTokenBody,
+  ResetPasswordBody,
 } from '../validators/user.schema.ts';
 import type {
+  ForgotPasswordResponse,
   LoginUserResponse,
   RefreshAccessTokenResponse,
   RegisterUserResponse,
@@ -31,6 +39,17 @@ import {
   generateRefreshToken,
   verifyRefreshToken,
 } from './token.service.ts';
+import { env } from '../config/env.ts';
+import { sendPasswordResetEmail } from './mail.service.ts';
+
+const PASSWORD_RESET_TOKEN_TTL_MS = 15 * 60 * 1000;
+
+const buildPasswordResetUrl = (token: string) => {
+  const baseUrl = env.RESET_PASSWORD_URL_BASE ?? `http://localhost:${env.PORT}/api/v1/users/reset-password`;
+  const separator = baseUrl.includes('?') ? '&' : '?';
+
+  return `${baseUrl}${separator}token=${encodeURIComponent(token)}`;
+};
 
 const registerUser = async (
   payload: CreateUserInput,
@@ -132,6 +151,48 @@ const logoutUser = async (userId: string) => {
   await updateUserRefreshToken(userId, null);
 };
 
+const forgotPassword = async (
+  payload: ForgotPasswordBody,
+): Promise<ForgotPasswordResponse> => {
+  const user: UserDocument | null = await findUserByEmailWithSensitiveFields(payload.email);
+
+  if (!user) {
+    return { resetUrl: null };
+  }
+
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  const hashedResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+  const passwordResetTokenExpiresAt = new Date(Date.now() + PASSWORD_RESET_TOKEN_TTL_MS);
+
+  await updateUserPasswordResetToken(
+    String(user._id),
+    hashedResetToken,
+    passwordResetTokenExpiresAt,
+  );
+
+  const resetUrl = buildPasswordResetUrl(resetToken);
+  await sendPasswordResetEmail(user.email, resetUrl);
+
+  return { resetUrl: null };
+};
+
+const resetPassword = async (payload: ResetPasswordBody): Promise<void> => {
+  const hashedResetToken = crypto.createHash('sha256').update(payload.token).digest('hex');
+  const user: UserDocument | null = await findUserByResetToken(hashedResetToken);
+
+  if (!user) {
+    throw ApiError.badRequest('Invalid or expired reset token');
+  }
+
+  const isSamePassword = await bcrypt.compare(payload.newPassword, user.password);
+  if (isSamePassword) {
+    throw ApiError.badRequest('New password must be different from current password');
+  }
+
+  const hashedNewPassword = await bcrypt.hash(payload.newPassword, 10);
+  await resetUserPasswordById(String(user._id), hashedNewPassword);
+};
+
 const getProfile = async (userId: string): Promise<UserProfileResponse> => {
   const userLookupPayload: UserLookupFilters = { _id: userId };
   const user: UserDocument | null = await findUser(userLookupPayload);
@@ -194,6 +255,8 @@ export {
   loginUser,
   refreshAccessToken,
   logoutUser,
+  forgotPassword,
+  resetPassword,
   getProfile,
   updateProfile,
   changePassword,
