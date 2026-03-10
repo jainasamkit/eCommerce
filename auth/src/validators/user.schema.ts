@@ -1,19 +1,21 @@
 import { z } from 'zod';
 
+const strongPasswordSchema = z
+  .string()
+  .min(8, 'Password must be at least 8 characters')
+  .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+  .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+  .regex(/\d/, 'Password must contain at least one number')
+  .regex(
+    /[!@#$%^&*(),.?":{}|<>_\-\\[\]/`~+=;']/,
+    'Password must contain at least one special character',
+  );
+
 const registerUserSchema = z
   .object({
     name: z.string().trim().min(2, 'Name must be at least 2 characters'),
     email: z.string().trim().toLowerCase().email('Invalid email address'),
-    password: z
-      .string()
-      .min(8, 'Password must be at least 8 characters')
-      .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-      .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-      .regex(/\d/, 'Password must contain at least one number')
-      .regex(
-        /[!@#$%^&*(),.?":{}|<>_\-\\[\]/`~+=;']/,
-        'Password must contain at least one special character',
-      ),
+    password: strongPasswordSchema,
   })
   .strict();
 
@@ -36,11 +38,25 @@ const updateProfileSchema = z
   })
   .strict();
 
+const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Current password is required'),
+    newPassword: strongPasswordSchema,
+  })
+  .strict();
+
 type RegisterUserBody = z.infer<typeof registerUserSchema>;
 type LoginUserBody = z.infer<typeof loginUserSchema>;
 type RefreshTokenBody = z.infer<typeof refreshTokenSchema>;
 type UpdateProfileBody = z.infer<typeof updateProfileSchema>;
+type ChangePasswordBody = z.infer<typeof changePasswordSchema>;
 
 export { registerUserSchema };
-export { loginUserSchema, refreshTokenSchema, updateProfileSchema };
-export type { RegisterUserBody, LoginUserBody, RefreshTokenBody, UpdateProfileBody };
+export { loginUserSchema, refreshTokenSchema, updateProfileSchema, changePasswordSchema };
+export type {
+  RegisterUserBody,
+  LoginUserBody,
+  RefreshTokenBody,
+  UpdateProfileBody,
+  ChangePasswordBody,
+};

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import {
+  changePassword,
   getProfile,
   loginUser,
   logoutUser,
@@ -15,6 +16,7 @@ import {
   loginUserSchema,
   refreshTokenSchema,
   registerUserSchema,
+  changePasswordSchema,
   updateProfileSchema,
 } from '../../validators/user.schema.ts';
 
@@ -25,9 +27,14 @@ userRouter.post('/register', uploadProfilePic, validateBody(registerUserSchema),
 userRouter.post('/login', validateBody(loginUserSchema), loginUser);
 userRouter.post('/refresh-token', validateBody(refreshTokenSchema), refreshAccessToken);
 
-userRouter.use(['/logout', '/profile'], authenticateUser, authoriseUser([UserRole.USER]));
+userRouter.use(
+  ['/logout', '/profile', '/change-password'],
+  authenticateUser,
+  authoriseUser([UserRole.USER]),
+);
 
 userRouter.post('/logout', logoutUser);
+userRouter.post('/change-password', validateBody(changePasswordSchema), changePassword);
 userRouter.get('/profile', getProfile);
 userRouter.patch(
   '/profile',

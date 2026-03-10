@@ -29,6 +29,10 @@ const findUserForRefreshToken = async (id: string): Promise<UserDocument | null>
   return User.findById(id).select('-password');
 };
 
+const findUserByIdWithPassword = async (id: string): Promise<UserDocument | null> => {
+  return User.findById(id);
+};
+
 const createUser = async (payload: CreateUserInput): Promise<UserDocument> => {
   const createdUser = await User.create({
     ...payload,
@@ -55,11 +59,20 @@ const updateUserRefreshToken = async (
   return User.findByIdAndUpdate(id, { refreshToken }, { returnDocument: 'after' }).select('-password -refreshToken');
 };
 
+const updateUserPasswordById = async (
+  id: string,
+  password: string,
+): Promise<UserDocument | null> => {
+  return User.findByIdAndUpdate(id, { password }, { returnDocument: 'after' }).select('-password -refreshToken');
+};
+
 export {
   findUser,
   findUserForLogin,
   findUserForRefreshToken,
+  findUserByIdWithPassword,
   createUser,
   updateUserById,
   updateUserRefreshToken,
+  updateUserPasswordById,
 };

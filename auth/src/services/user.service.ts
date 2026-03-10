@@ -4,12 +4,15 @@ import type { JwtPayload } from 'jsonwebtoken';
 import {
   createUser,
   findUser,
+  findUserByIdWithPassword,
   findUserForLogin,
   findUserForRefreshToken,
   updateUserById,
+  updateUserPasswordById,
   updateUserRefreshToken,
 } from '../repository/user.repository.ts';
 import type {
+  ChangePasswordBody,
   LoginUserBody,
   RefreshTokenBody,
 } from '../validators/user.schema.ts';
@@ -161,6 +164,31 @@ const updateProfile = async (
   return updatedUser;
 };
 
+const changePassword = async (
+  userId: string,
+  payload: ChangePasswordBody,
+): Promise<void> => {
+  const user: UserDocument | null = await findUserByIdWithPassword(userId);
+  if (!user) {
+    throw ApiError.notFound('User not found');
+  }
+
+  const isCurrentPasswordCorrect = await bcrypt.compare(payload.currentPassword, user.password);
+  if (!isCurrentPasswordCorrect) {
+    throw ApiError.badRequest('Current password is incorrect');
+  }
+
+  const isSamePassword = await bcrypt.compare(payload.newPassword, user.password);
+  if (isSamePassword) {
+    throw ApiError.badRequest('New password must be different from current password');
+  }
+
+  const hashedNewPassword = await bcrypt.hash(payload.newPassword, 10);
+  await updateUserPasswordById(userId, hashedNewPassword);
+
+  await updateUserRefreshToken(userId, null);
+};
+
 export {
   registerUser,
   loginUser,
@@ -168,4 +196,5 @@ export {
   logoutUser,
   getProfile,
   updateProfile,
+  changePassword,
 };

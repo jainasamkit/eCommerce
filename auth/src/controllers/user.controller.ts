@@ -13,6 +13,7 @@ import type {
 import { uploadFileToR2 } from '../services/r2.service.ts';
 import { ApiError } from '../utils/ApiError.ts';
 import type {
+  ChangePasswordBody,
   LoginUserBody,
   RefreshTokenBody,
 } from '../validators/user.schema.ts';
@@ -83,4 +84,19 @@ const updateProfile = async (req: Request, res: Response) => {
   return res.status(200).json(ApiResponse.success(updatedUser, 'Profile updated successfully'));
 };
 
-export { registerUser, loginUser, refreshAccessToken, logoutUser, getProfile, updateProfile };
+const changePassword = async (req: Request, res: Response) => {
+  const payload: ChangePasswordBody = req.body;
+  await userService.changePassword(req.user!.id, payload);
+
+  return res.status(200).json(ApiResponse.success(null, 'Password changed successfully'));
+};
+
+export {
+  registerUser,
+  loginUser,
+  refreshAccessToken,
+  logoutUser,
+  getProfile,
+  updateProfile,
+  changePassword,
+};
