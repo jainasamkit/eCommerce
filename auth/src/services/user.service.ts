@@ -1,19 +1,30 @@
 import { ApiError } from '../utils/ApiError.ts';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import type { JwtPayload } from 'jsonwebtoken';
 import {
   createUser,
   findUser,
+  findUserByEmailWithSensitiveFields,
+  findUserByIdWithPassword,
   findUserForLogin,
   findUserForRefreshToken,
+  findUserByResetToken,
+  resetUserPasswordById,
   updateUserById,
+  updateUserPasswordById,
+  updateUserPasswordResetToken,
   updateUserRefreshToken,
 } from '../repository/user.repository.ts';
 import type {
+  ChangePasswordBody,
+  ForgotPasswordBody,
   LoginUserBody,
   RefreshTokenBody,
+  ResetPasswordBody,
 } from '../validators/user.schema.ts';
 import type {
+  ForgotPasswordResponse,
   LoginUserResponse,
   RefreshAccessTokenResponse,
   RegisterUserResponse,
@@ -23,15 +34,20 @@ import type {
   UserLookupFilters,
   UserProfileResponse,
 } from '../types/user.types.ts';
-import {
-  generateAccessToken,
-  generateRefreshToken,
-  verifyRefreshToken,
-} from './token.service.ts';
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from './token.service.ts';
+import { env } from '../config/env.ts';
+import { sendPasswordResetEmail } from './mail.service.ts';
 
-const registerUser = async (
-  payload: CreateUserInput,
-): Promise<RegisterUserResponse> => {
+const PASSWORD_RESET_TOKEN_TTL_MS = 15 * 60 * 1000;
+
+const buildPasswordResetUrl = (token: string) => {
+  const baseUrl = env.RESET_PASSWORD_URL_BASE;
+  const separator = baseUrl!.includes('?') ? '&' : '?';
+
+  return `${baseUrl}${separator}token=${encodeURIComponent(token)}`;
+};
+
+const registerUser = async (payload: CreateUserInput): Promise<RegisterUserResponse> => {
   const existingUser: UserDocument | null = await findUser({ email: payload.email });
 
   if (existingUser) {
@@ -129,6 +145,46 @@ const logoutUser = async (userId: string) => {
   await updateUserRefreshToken(userId, null);
 };
 
+const forgotPassword = async (payload: ForgotPasswordBody): Promise<ForgotPasswordResponse> => {
+  const user: UserDocument | null = await findUserByEmailWithSensitiveFields(payload.email);
+
+  if (!user) {
+    return { resetUrl: null };
+  }
+
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  const hashedResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+  const passwordResetTokenExpiresAt = new Date(Date.now() + PASSWORD_RESET_TOKEN_TTL_MS);
+
+  await updateUserPasswordResetToken(
+    String(user._id),
+    hashedResetToken,
+    passwordResetTokenExpiresAt,
+  );
+
+  const resetUrl = buildPasswordResetUrl(resetToken);
+  await sendPasswordResetEmail(user.email, resetUrl);
+
+  return { resetUrl: null };
+};
+
+const resetPassword = async (payload: ResetPasswordBody): Promise<void> => {
+  const hashedResetToken = crypto.createHash('sha256').update(payload.token).digest('hex');
+  const user: UserDocument | null = await findUserByResetToken(hashedResetToken);
+
+  if (!user) {
+    throw ApiError.badRequest('Invalid or expired reset token');
+  }
+
+  const isSamePassword = await bcrypt.compare(payload.newPassword, user.password);
+  if (isSamePassword) {
+    throw ApiError.badRequest('New password must be different from current password');
+  }
+
+  const hashedNewPassword = await bcrypt.hash(payload.newPassword, 10);
+  await resetUserPasswordById(String(user._id), hashedNewPassword);
+};
+
 const getProfile = async (userId: string): Promise<UserProfileResponse> => {
   const userLookupPayload: UserLookupFilters = { _id: userId };
   const user: UserDocument | null = await findUser(userLookupPayload);
@@ -161,11 +217,36 @@ const updateProfile = async (
   return updatedUser;
 };
 
+const changePassword = async (userId: string, payload: ChangePasswordBody): Promise<void> => {
+  const user: UserDocument | null = await findUserByIdWithPassword(userId);
+  if (!user) {
+    throw ApiError.notFound('User not found');
+  }
+
+  const isCurrentPasswordCorrect = await bcrypt.compare(payload.currentPassword, user.password);
+  if (!isCurrentPasswordCorrect) {
+    throw ApiError.badRequest('Current password is incorrect');
+  }
+
+  const isSamePassword = await bcrypt.compare(payload.newPassword, user.password);
+  if (isSamePassword) {
+    throw ApiError.badRequest('New password must be different from current password');
+  }
+
+  const hashedNewPassword = await bcrypt.hash(payload.newPassword, 10);
+  await updateUserPasswordById(userId, hashedNewPassword);
+
+  await updateUserRefreshToken(userId, null);
+};
+
 export {
   registerUser,
   loginUser,
   refreshAccessToken,
   logoutUser,
+  forgotPassword,
+  resetPassword,
   getProfile,
   updateProfile,
+  changePassword,
 };
