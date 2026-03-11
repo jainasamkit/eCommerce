@@ -2,13 +2,9 @@ import { Resend } from 'resend';
 import { env } from '../config/env.ts';
 import { ApiError } from '../utils/ApiError.ts';
 
-const resendClient = env.RESEND_KEY ? new Resend(env.RESEND_KEY) : null;
+const resendClient = new Resend(env.RESEND_KEY);
 
 const sendPasswordResetEmail = async (email: string, resetUrl: string): Promise<void> => {
-  if (!resendClient) {
-    throw ApiError.internal('RESEND_KEY is not configured');
-  }
-
   const { data, error } = await resendClient.emails.send({
     from: env.RESEND_FROM_EMAIL,
     to: email,

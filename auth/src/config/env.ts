@@ -15,7 +15,7 @@ const envSchema = z.object({
   R2_BUCKET: z.string(),
   R2_PUBLIC_URL: z.string(),
   R2_ENDPOINT: z.string(),
-  RESEND_KEY: z.string().optional(),
+  RESEND_KEY: z.string(),
   RESEND_FROM_EMAIL: z.string().email().default('onboarding@resend.dev'),
   RESET_PASSWORD_URL_BASE: z.string().optional(),
 });

@@ -34,26 +34,20 @@ import type {
   UserLookupFilters,
   UserProfileResponse,
 } from '../types/user.types.ts';
-import {
-  generateAccessToken,
-  generateRefreshToken,
-  verifyRefreshToken,
-} from './token.service.ts';
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from './token.service.ts';
 import { env } from '../config/env.ts';
 import { sendPasswordResetEmail } from './mail.service.ts';
 
 const PASSWORD_RESET_TOKEN_TTL_MS = 15 * 60 * 1000;
 
 const buildPasswordResetUrl = (token: string) => {
-  const baseUrl = env.RESET_PASSWORD_URL_BASE ?? `http://localhost:${env.PORT}/api/v1/users/reset-password`;
-  const separator = baseUrl.includes('?') ? '&' : '?';
+  const baseUrl = env.RESET_PASSWORD_URL_BASE;
+  const separator = baseUrl!.includes('?') ? '&' : '?';
 
   return `${baseUrl}${separator}token=${encodeURIComponent(token)}`;
 };
 
-const registerUser = async (
-  payload: CreateUserInput,
-): Promise<RegisterUserResponse> => {
+const registerUser = async (payload: CreateUserInput): Promise<RegisterUserResponse> => {
   const existingUser: UserDocument | null = await findUser({ email: payload.email });
 
   if (existingUser) {
@@ -151,9 +145,7 @@ const logoutUser = async (userId: string) => {
   await updateUserRefreshToken(userId, null);
 };
 
-const forgotPassword = async (
-  payload: ForgotPasswordBody,
-): Promise<ForgotPasswordResponse> => {
+const forgotPassword = async (payload: ForgotPasswordBody): Promise<ForgotPasswordResponse> => {
   const user: UserDocument | null = await findUserByEmailWithSensitiveFields(payload.email);
 
   if (!user) {
@@ -225,10 +217,7 @@ const updateProfile = async (
   return updatedUser;
 };
 
-const changePassword = async (
-  userId: string,
-  payload: ChangePasswordBody,
-): Promise<void> => {
+const changePassword = async (userId: string, payload: ChangePasswordBody): Promise<void> => {
   const user: UserDocument | null = await findUserByIdWithPassword(userId);
   if (!user) {
     throw ApiError.notFound('User not found');
