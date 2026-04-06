@@ -4,7 +4,20 @@ import type {
   ProductDocument,
   ProductLookupFilters,
   ProductListResult,
+  ProductSortField,
+  ProductSortOrder,
 } from '../types/product.types.ts';
+
+const SORT_FIELD_MAP: Record<ProductSortField, 'createdAt' | 'price' | 'name'> = {
+  createdAt: 'createdAt',
+  price: 'price',
+  name: 'name',
+};
+
+const SORT_ORDER_MAP: Record<ProductSortOrder, 1 | -1> = {
+  asc: 1,
+  desc: -1,
+};
 
 const buildProductFilters = (query: GetProductsQuery): ProductLookupFilters => {
   const filters: ProductLookupFilters = { isDeleted: false };
@@ -21,20 +34,31 @@ const buildProductFilters = (query: GetProductsQuery): ProductLookupFilters => {
     filters.$or = [
       { name: { $regex: query.search, $options: 'i' } },
       { description: { $regex: query.search, $options: 'i' } },
+      { brand: { $regex: query.search, $options: 'i' } },
+      { category: { $regex: query.search, $options: 'i' } },
     ];
+  }
+
+  if (query.specificationKey && query.specificationValue) {
+    filters[`specifications.${query.specificationKey}`] = query.specificationValue;
   }
 
   return filters;
 };
 
+const buildProductSort = (query: GetProductsQuery) => ({
+  [SORT_FIELD_MAP[query.sortBy]]: SORT_ORDER_MAP[query.sortOrder],
+});
+
 const findProducts = async (query: GetProductsQuery): Promise<ProductListResult> => {
   const filters = buildProductFilters(query);
+  const sort = buildProductSort(query);
   const skip = (query.page - 1) * query.limit;
 
   const [products, total] = await Promise.all([
     Product.find(filters)
       .select('-isDeleted')
-      .sort({ createdAt: -1 })
+      .sort(sort)
       .skip(skip)
       .limit(query.limit)
       .lean(),

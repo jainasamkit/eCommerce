@@ -20,6 +20,7 @@ const toProductResponse = (product: ProductDocument): ProductListItem => ({
   images: product.images ?? [],
   category: product.category ?? [],
   discount: product.discount ?? null,
+  specifications: product.specifications ?? {},
   createdBy: product.createdBy ? String(product.createdBy) : null,
   createdAt: product.createdAt,
   updatedAt: product.updatedAt,

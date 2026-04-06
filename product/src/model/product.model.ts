@@ -35,6 +35,11 @@ const productSchema = new Schema<ProductDocument>(
     discount: {
       type: Number,
     },
+    specifications: {
+      type: Map,
+      of: Schema.Types.Mixed,
+      default: {},
+    },
     isDeleted: {
       type: Boolean,
       default: false,

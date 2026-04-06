@@ -11,6 +11,7 @@ type ProductModelShape = {
   images?: string[];
   category?: string[];
   discount?: number;
+  specifications?: Record<string, string | number | boolean | string[]>;
   isDeleted: boolean;
   createdBy?: Types.ObjectId;
 };
@@ -31,6 +32,7 @@ type ProductListItem = {
   images: string[];
   category: string[];
   discount: number | null;
+  specifications: Record<string, string | number | boolean | string[]>;
   createdBy: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -55,12 +57,16 @@ type ProductLookupFilters = {
   brand?: string;
   category?: string;
   $or?: Array<Record<string, unknown>>;
+  [key: `specifications.${string}`]: unknown;
 };
 
 type ProductListResult = {
   products: ProductDocument[];
   total: number;
 };
+
+type ProductSortField = GetProductsQuery['sortBy'];
+type ProductSortOrder = GetProductsQuery['sortOrder'];
 
 export type {
   ProductModelShape,
@@ -71,4 +77,6 @@ export type {
   GetProductsResponse,
   ProductLookupFilters,
   ProductListResult,
+  ProductSortField,
+  ProductSortOrder,
 };
