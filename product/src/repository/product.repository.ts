@@ -22,12 +22,15 @@ const SORT_ORDER_MAP: Record<ProductSortOrder, 1 | -1> = {
 const buildProductFilters = (query: GetProductsQuery): ProductLookupFilters => {
   const filters: ProductLookupFilters = { isDeleted: false };
 
-  if (query.brand) {
-    filters.brand = query.brand;
+  if (query.brand?.length) {
+    const brandFilters = query.brand;
+    filters.brand = brandFilters.length === 1 ? brandFilters[0]! : { $in: brandFilters };
   }
 
-  if (query.category) {
-    filters.category = query.category;
+  if (query.category?.length) {
+    const categoryFilters = query.category;
+    filters.category =
+      categoryFilters.length === 1 ? categoryFilters[0]! : { $in: categoryFilters };
   }
 
   if (query.search) {
@@ -37,6 +40,12 @@ const buildProductFilters = (query: GetProductsQuery): ProductLookupFilters => {
       { brand: { $regex: query.search, $options: 'i' } },
       { category: { $regex: query.search, $options: 'i' } },
     ];
+  }
+
+  if (query.specifications) {
+    for (const [specificationKey, specificationValue] of Object.entries(query.specifications)) {
+      filters[`specifications.${specificationKey}`] = specificationValue;
+    }
   }
 
   if (query.specificationKey && query.specificationValue) {

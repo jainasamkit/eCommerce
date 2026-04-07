@@ -54,8 +54,8 @@ type GetProductsResponse = {
 
 type ProductLookupFilters = {
   isDeleted: boolean;
-  brand?: string;
-  category?: string;
+  brand?: string | { $in: string[] };
+  category?: string | { $in: string[] };
   $or?: Array<Record<string, unknown>>;
   [key: `specifications.${string}`]: unknown;
 };
