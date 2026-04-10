@@ -13,6 +13,7 @@ type AddressModelShape = {
   landmark?: string | null;
   addressType?: string | null;
   isDefault: boolean;
+  isDeleted: boolean;
 };
 
 type AddressDocument = AddressModelShape & {

@@ -64,6 +64,11 @@ const addressSchema = new Schema<AddressDocument>(
       required: true,
       default: false,
     },
+    isDeleted: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
   },
   { timestamps: true },
 );
