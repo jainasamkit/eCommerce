@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import { ApiResponse } from '../utils/ApiResponse.ts';
+import { publishOrderCreated } from '../services/order-message.service.ts';
 import * as orderService from '../services/order.service.ts';
 import type { PlaceOrderBody } from '../validators/order.schema.ts';
 
@@ -27,4 +28,16 @@ const cancelOrder = async (req: Request, res: Response) => {
   return res.status(200).json(ApiResponse.success(order, 'Order cancelled successfully'));
 };
 
-export { placeOrder, getMyOrders, getOrderById, cancelOrder };
+const publishOrderCreatedTest = async (_req: Request, res: Response) => {
+  const payload = {
+    eventId: crypto.randomUUID(),
+    orderId: crypto.randomUUID(),
+    productId: 'test-product-id',
+    quantity: 1,
+  };
+
+  await publishOrderCreated(payload);
+  return res.status(202).json(ApiResponse.success(payload, 'Test order.created event published successfully'));
+};
+
+export { placeOrder, getMyOrders, getOrderById, cancelOrder, publishOrderCreatedTest };
