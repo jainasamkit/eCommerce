@@ -23,12 +23,13 @@ const authenticateUser = async (req: Request, _res: Response, next: NextFunction
   }
 };
 
-const authoriseUser = (roles: Array<string>) => (req: Request, _res: Response, next: NextFunction) => {
-  if (!req.user || !roles.includes(req.user.role)) {
-    return next(ApiError.forbidden('Forbidden'));
-  }
+const authoriseUser =
+  (roles: Array<string>) => (req: Request, _res: Response, next: NextFunction) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      return next(ApiError.forbidden('Forbidden'));
+    }
 
-  next();
-};
+    next();
+  };
 
 export { authenticateUser, authoriseUser };

@@ -12,10 +12,9 @@ import { UserRole } from '../../types/user.types.ts';
 import { orderIdParamSchema, placeOrderSchema } from '../../validators/order.schema.ts';
 
 const orderRouter = Router();
-orderRouter.post('/publish-test', publishOrderCreatedTest);
 
 orderRouter.use(authenticateUser, authoriseUser([UserRole.USER]));
-
+orderRouter.post('/publish-test', publishOrderCreatedTest);
 orderRouter.post('/', validateBody(placeOrderSchema), placeOrder);
 orderRouter.get('/', getMyOrders);
 orderRouter.get('/:orderId', validateParams(orderIdParamSchema), getOrderById);

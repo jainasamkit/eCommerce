@@ -1,13 +1,14 @@
 import { Types } from 'mongoose';
+import { getProductById } from '../clients/product.client.ts';
 import { env } from '../config/env.ts';
 import { findAddressByIdAndUserId } from '../repository/address.repository.ts';
-import { decrementProductQuantity, findProductById } from '../repository/product.repository.ts';
 import {
   createOrder,
   findOrderByIdAndUserId,
   findOrdersByUserId,
   updateOrderByIdAndUserId,
 } from '../repository/order.repository.ts';
+import { publishOrderCreated } from './order-message.service.ts';
 import { OrderStatus, PaymentStatus, type OrderDocument, type OrderModelShape } from '../types/order.types.ts';
 import type { PlaceOrderBody } from '../validators/order.schema.ts';
 import { ApiError } from '../utils/ApiError.ts';
@@ -47,11 +48,7 @@ const placeOrder = async (userId: string, payload: PlaceOrderBody) => {
     throw ApiError.notFound('Address not found');
   }
 
-  const product = await findProductById(payload.productId);
-  if (!product) {
-    throw ApiError.notFound('Product not found');
-  }
-
+  const product = await getProductById(payload.productId);
   if (product.quantity < payload.quantity) {
     throw ApiError.badRequest('Insufficient product quantity available');
   }
@@ -76,12 +73,14 @@ const placeOrder = async (userId: string, payload: PlaceOrderBody) => {
     placedAt: new Date(),
   };
 
-  const updatedProduct = await decrementProductQuantity(payload.productId, payload.quantity);
-  if (!updatedProduct) {
-    throw ApiError.badRequest('Unable to place order because product stock changed');
-  }
-
   const order = await createOrder(orderPayload);
+  await publishOrderCreated({
+    eventId: crypto.randomUUID(),
+    orderId: String(order._id),
+    productId: payload.productId,
+    quantity: payload.quantity,
+  });
+
   return toOrderResponse(order);
 };
 

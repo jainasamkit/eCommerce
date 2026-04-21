@@ -3,4 +3,5 @@ node_modules/
 dist/
 auth/public/temp/*
 !auth/public/temp/.gitkeep
-auth/postman/
+/postman/
+/postman
