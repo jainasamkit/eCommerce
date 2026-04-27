@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { ApiResponse } from '../utils/ApiResponse.ts';
+import { ApiResponse } from '@ecommerce/shared-http';
 import * as addressService from '../services/address.service.ts';
 import type { CreateAddressBody, UpdateAddressBody } from '../validators/address.schema.ts';
 

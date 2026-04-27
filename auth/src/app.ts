@@ -1,14 +1,6 @@
-import express from 'express';
-import { errorHandler } from './middleware/error.middleware.ts';
+import { createServiceApp } from '@ecommerce/shared-http';
 import { apiRouter } from './routes/index.ts';
 
-const app = express();
-app.use(express.json());
-app.get('/', (req, res) => {
-  res.send('Server is running 🚀');
-});
-app.use('/api', apiRouter);
-
-app.use(errorHandler);
+const app = createServiceApp(apiRouter, 'Authentication service is running');
 
 export default app;

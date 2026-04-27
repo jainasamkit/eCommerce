@@ -14,7 +14,7 @@ import type {
   CreateAddressBody,
   UpdateAddressBody,
 } from '../validators/address.schema.ts';
-import { ApiError } from '../utils/ApiError.ts';
+import { ApiError } from '@ecommerce/shared-http';
 
 const toAddressResponse = (address: AddressDocument) => ({
   id: String(address._id),

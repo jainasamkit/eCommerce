@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "nodemon",
-    "build": "tsc",
+    "build": "cmd /c ..\\node_modules\\.bin\\tsc.cmd -p ..\\packages\\shared-http\\tsconfig.json && cmd /c ..\\node_modules\\.bin\\tsc.cmd -p ..\\packages\\shared-database\\tsconfig.json && cmd /c ..\\node_modules\\.bin\\tsc.cmd -p ..\\packages\\shared-messaging\\tsconfig.json && tsc",
     "start": "node dist/index.js",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf dist",
@@ -17,6 +17,9 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@ecommerce/shared-database": "file:../packages/shared-database",
+    "@ecommerce/shared-http": "file:../packages/shared-http",
+    "@ecommerce/shared-messaging": "file:../packages/shared-messaging",
     "@types/amqplib": "^0.10.8",
     "amqplib": "^1.0.3",
     "dotenv": "^17.3.1",

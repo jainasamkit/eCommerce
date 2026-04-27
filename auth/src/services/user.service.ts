@@ -1,4 +1,4 @@
-import { ApiError } from '../utils/ApiError.ts';
+import { ApiError } from '@ecommerce/shared-http';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import type { JwtPayload } from 'jsonwebtoken';

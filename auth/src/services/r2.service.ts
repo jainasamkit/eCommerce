@@ -3,7 +3,7 @@ import { unlink } from 'fs/promises';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { getR2Client } from '../config/r2.ts';
 import { env } from '../config/env.ts';
-import { ApiError } from '../utils/ApiError.ts';
+import { ApiError } from '@ecommerce/shared-http';
 import type { UploadFileResponse } from '../types/storage.types.ts';
 
 const normalizeBaseUrl = (url: string) => url.replace(/\/+$/, '');

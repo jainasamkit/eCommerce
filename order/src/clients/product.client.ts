@@ -1,5 +1,5 @@
 import { env } from '../config/env.ts';
-import { ApiError } from '../utils/ApiError.ts';
+import { ApiError } from '@ecommerce/shared-http';
 
 type ProductDetail = {
   id: string;

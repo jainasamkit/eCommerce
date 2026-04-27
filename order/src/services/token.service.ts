@@ -1,8 +1,8 @@
-import jwt from 'jsonwebtoken';
+import { verifyAccessToken as decodeAccessToken } from '@ecommerce/shared-auth';
 import { env } from '../config/env.ts';
 
 const verifyAccessToken = (token: string) => {
-  return jwt.verify(token, env.ACCESS_TOKEN_SECRET);
+  return decodeAccessToken(token, env.ACCESS_TOKEN_SECRET);
 };
 
 export { verifyAccessToken };

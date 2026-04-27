@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import multer, { MulterError } from 'multer';
 import type { RequestHandler } from 'express';
-import { ApiError } from '../utils/ApiError.ts';
+import { ApiError } from '@ecommerce/shared-http';
 
 interface SingleFileUploadOptions {
   fieldName: string;

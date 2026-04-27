@@ -8,7 +8,7 @@ import {
   updateAddress,
 } from '../../controllers/address.controller.ts';
 import { authenticateUser, authoriseUser } from '../../middleware/auth.middleware.ts';
-import { validateBody, validateParams } from '../../middleware/validate.middleware.ts';
+import { validateBody, validateParams } from '@ecommerce/shared-http';
 import { UserRole } from '../../types/user.types.ts';
 import {
   addressIdParamSchema,

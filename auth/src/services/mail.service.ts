@@ -1,6 +1,6 @@
 import { Resend } from 'resend';
 import { env } from '../config/env.ts';
-import { ApiError } from '../utils/ApiError.ts';
+import { ApiError } from '@ecommerce/shared-http';
 
 const resendClient = new Resend(env.RESEND_KEY);
 

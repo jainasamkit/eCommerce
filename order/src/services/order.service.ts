@@ -11,7 +11,7 @@ import {
 import { publishOrderCreated } from './order-message.service.ts';
 import { OrderStatus, PaymentStatus, type OrderDocument, type OrderModelShape } from '../types/order.types.ts';
 import type { PlaceOrderBody } from '../validators/order.schema.ts';
-import { ApiError } from '../utils/ApiError.ts';
+import { ApiError } from '@ecommerce/shared-http';
 
 const toOrderResponse = (order: OrderDocument) => ({
   id: String(order._id),

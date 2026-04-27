@@ -1,5 +1,5 @@
 import { isValidObjectId } from 'mongoose';
-import { ApiError } from '../utils/ApiError.ts';
+import { ApiError } from '@ecommerce/shared-http';
 import { findProductById, findProducts } from '../repository/product.repository.ts';
 import type {
   GetProductsQuery,

@@ -1,16 +1,7 @@
-import mongoose, { type Mongoose } from 'mongoose';
+import mongoose from 'mongoose';
+import { connectMongoDB } from '@ecommerce/shared-database';
 import { env } from './env.ts';
 
-const { MONGO_URI } = env;
-
-const connectDB = async (): Promise<void> => {
-  try {
-    const connection: Mongoose = await mongoose.connect(MONGO_URI);
-    console.log('MongoDB connected:', connection.connection.host);
-  } catch (error) {
-    console.error('MongoDB connection error:', error);
-    throw error;
-  }
-};
+const connectDB = () => connectMongoDB(mongoose, env.MONGO_URI);
 
 export default connectDB;

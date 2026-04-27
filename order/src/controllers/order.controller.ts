@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { ApiResponse } from '../utils/ApiResponse.ts';
+import { ApiResponse } from '@ecommerce/shared-http';
 import { publishOrderCreated } from '../services/order-message.service.ts';
 import * as orderService from '../services/order.service.ts';
 import type { PlaceOrderBody } from '../validators/order.schema.ts';

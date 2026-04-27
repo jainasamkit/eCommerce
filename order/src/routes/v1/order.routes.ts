@@ -7,7 +7,7 @@ import {
   publishOrderCreatedTest,
 } from '../../controllers/order.controller.ts';
 import { authenticateUser, authoriseUser } from '../../middleware/auth.middleware.ts';
-import { validateBody, validateParams } from '../../middleware/validate.middleware.ts';
+import { validateBody, validateParams } from '@ecommerce/shared-http';
 import { UserRole } from '../../types/user.types.ts';
 import { orderIdParamSchema, placeOrderSchema } from '../../validators/order.schema.ts';
 

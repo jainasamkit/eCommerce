@@ -12,7 +12,7 @@ import {
 } from '../../controllers/user.controller.ts';
 import { authenticateUser, authoriseUser } from '../../middleware/auth.middleware.ts';
 import { createSingleFileUpload } from '../../middleware/multer.middleware.ts';
-import { validateBody } from '../../middleware/validate.middleware.ts';
+import { validateBody } from '@ecommerce/shared-http';
 import { UserRole } from '../../types/user.types.ts';
 import {
   forgotPasswordSchema,

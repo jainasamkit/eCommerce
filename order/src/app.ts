@@ -1,15 +1,6 @@
-import express, { type Request, type Response } from 'express';
-import { errorHandler } from './middleware/error.middleware.ts';
+import { createServiceApp } from '@ecommerce/shared-http';
 import { apiRouter } from './routes/index.ts';
 
-const app = express();
-
-app.use(express.json());
-app.get('/', (_req: Request, res: Response) => {
-  res.send('Order service is running');
-});
-app.use('/api', apiRouter);
-
-app.use(errorHandler);
+const app = createServiceApp(apiRouter, 'Order service is running');
 
 export default app;

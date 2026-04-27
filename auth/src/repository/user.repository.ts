@@ -1,5 +1,5 @@
 import { User } from '../model/user.model.ts';
-import { ApiError } from '../utils/ApiError.ts';
+import { ApiError } from '@ecommerce/shared-http';
 import type {
   CreateUserInput,
   UserLookupFilters,

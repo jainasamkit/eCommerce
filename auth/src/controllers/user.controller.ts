@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { ApiResponse } from '../utils/ApiResponse.ts';
+import { ApiError, ApiResponse } from '@ecommerce/shared-http';
 import * as userService from '../services/user.service.ts';
 import type { UploadFileResponse } from '../types/storage.types.ts';
 import type {
@@ -12,7 +12,6 @@ import type {
   UserProfileResponse,
 } from '../types/user.types.ts';
 import { uploadFileToR2 } from '../services/r2.service.ts';
-import { ApiError } from '../utils/ApiError.ts';
 import type {
   ChangePasswordBody,
   ForgotPasswordBody,
