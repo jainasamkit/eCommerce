@@ -8,7 +8,10 @@ import {
   findOrdersByUserId,
   updateOrderByIdAndUserId,
 } from '../repository/order.repository.ts';
-import { publishOrderCreated } from './order-message.service.ts';
+import {
+  publishOrderCancelled,
+  publishOrderCreated,
+} from '../messaging/producers/order.producer.ts';
 import { OrderStatus, PaymentStatus, type OrderDocument, type OrderModelShape } from '../types/order.types.ts';
 import type { PlaceOrderBody } from '../validators/order.schema.ts';
 import { ApiError } from '@ecommerce/shared-http';
@@ -118,6 +121,15 @@ const cancelOrder = async (orderId: string, userId: string) => {
 
   if (!updatedOrder) {
     throw ApiError.notFound('Order not found');
+  }
+
+  if (order.status === OrderStatus.CONFIRMED) {
+    await publishOrderCancelled({
+      eventId: crypto.randomUUID(),
+      orderId: String(order._id),
+      productId: String(order.productId),
+      quantity: order.quantity,
+    });
   }
 
   return toOrderResponse(updatedOrder);

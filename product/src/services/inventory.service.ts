@@ -1,53 +1,52 @@
-import { z } from 'zod';
-import { decrementProductQuantity, findProductById } from '../repository/product.repository.ts';
-import type { OrderCreatedEvent } from '../types/messaging.types.ts';
-import { publishInventoryRejected, publishInventoryReserved } from './inventory-message.service.ts';
-
-const orderCreatedEventSchema = z.object({
-  eventId: z.string().trim().min(1),
-  orderId: z.string().trim().min(1),
-  productId: z.string().trim().min(1),
-  quantity: z.number().int().positive(),
-});
+import {
+  decrementProductQuantity,
+  findProductById,
+  incrementProductQuantity,
+} from '../repository/product.repository.ts';
+import type { OrderCancelledEvent, OrderCreatedEvent } from '../types/messaging.types.ts';
+import {
+  publishInventoryRejected,
+  publishInventoryReserved,
+} from '../messaging/producers/inventory.producer.ts';
 
 const handleOrderCreated = async (payload: OrderCreatedEvent): Promise<void> => {
-  const parsedPayload = orderCreatedEventSchema.parse(payload);
-  const product = await findProductById(parsedPayload.productId);
+  const product = await findProductById(payload.productId);
 
   if (!product) {
     await publishInventoryRejected({
-      eventId: parsedPayload.eventId,
-      orderId: parsedPayload.orderId,
-      productId: parsedPayload.productId,
-      quantity: parsedPayload.quantity,
+      eventId: payload.eventId,
+      orderId: payload.orderId,
+      productId: payload.productId,
+      quantity: payload.quantity,
       reason: 'Product not found',
     });
     return;
   }
 
-  const updatedProduct = await decrementProductQuantity(
-    parsedPayload.productId,
-    parsedPayload.quantity,
-  );
+  const updatedProduct = await decrementProductQuantity(payload.productId, payload.quantity);
 
   if (!updatedProduct) {
     await publishInventoryRejected({
-      eventId: parsedPayload.eventId,
-      orderId: parsedPayload.orderId,
-      productId: parsedPayload.productId,
-      quantity: parsedPayload.quantity,
+      eventId: payload.eventId,
+      orderId: payload.orderId,
+      productId: payload.productId,
+      quantity: payload.quantity,
       reason: 'Insufficient product quantity available',
     });
     return;
   }
 
   await publishInventoryReserved({
-    eventId: parsedPayload.eventId,
-    orderId: parsedPayload.orderId,
-    productId: parsedPayload.productId,
-    quantity: parsedPayload.quantity,
+    eventId: payload.eventId,
+    orderId: payload.orderId,
+    productId: payload.productId,
+    quantity: payload.quantity,
     remainingQuantity: updatedProduct.quantity,
   });
 };
 
-export { handleOrderCreated };
+const handleOrderCancelled = async (payload: OrderCancelledEvent): Promise<void> => {
+  await incrementProductQuantity(payload.productId, payload.quantity);
+};
+
+export { handleOrderCreated, handleOrderCancelled };

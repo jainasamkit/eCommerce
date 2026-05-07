@@ -7,6 +7,10 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3002),
   MONGO_URI: z.string().min(1, 'MONGO_URI is required'),
   RABBITMQ_URL: z.string().min(1, 'RABBITMQ_URL is required'),
+  RABBITMQ_EXCHANGE: z.string().min(1, 'RABBITMQ_EXCHANGE is required'),
+  RABBITMQ_INVENTORY_RESULTS_QUEUE: z
+    .string()
+    .min(1, 'RABBITMQ_INVENTORY_RESULTS_QUEUE is required'),
   PRODUCT_SERVICE_URL: z.string().min(1, 'PRODUCT_SERVICE_URL is required'),
   ACCESS_TOKEN_SECRET: z.string().min(1, 'ACCESS_TOKEN_SECRET is required'),
   DEFAULT_SHIPPING_FEE: z.coerce.number().nonnegative().default(0),

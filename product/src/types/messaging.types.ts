@@ -5,6 +5,13 @@ type OrderCreatedEvent = {
   quantity: number;
 };
 
+type OrderCancelledEvent = {
+  eventId: string;
+  orderId: string;
+  productId: string;
+  quantity: number;
+};
+
 type InventoryReservedEvent = {
   eventId: string;
   orderId: string;
@@ -21,4 +28,9 @@ type InventoryRejectedEvent = {
   reason: string;
 };
 
-export type { OrderCreatedEvent, InventoryReservedEvent, InventoryRejectedEvent };
+export type {
+  OrderCreatedEvent,
+  OrderCancelledEvent,
+  InventoryReservedEvent,
+  InventoryRejectedEvent,
+};

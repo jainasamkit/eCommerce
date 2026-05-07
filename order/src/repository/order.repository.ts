@@ -16,6 +16,10 @@ const findOrderByIdAndUserId = async (
   return Order.findOne({ _id: orderId, userId });
 };
 
+const findOrderById = async (orderId: string): Promise<OrderDocument | null> => {
+  return Order.findById(orderId);
+};
+
 const updateOrderByIdAndUserId = async (
   orderId: string,
   userId: string,
@@ -35,10 +39,22 @@ const updateOrderById = async (
   });
 };
 
+const updateOrderByIdAndStatus = async (
+  orderId: string,
+  status: OrderModelShape['status'],
+  payload: Partial<OrderModelShape>,
+): Promise<OrderDocument | null> => {
+  return Order.findOneAndUpdate({ _id: orderId, status }, payload, {
+    returnDocument: 'after',
+  });
+};
+
 export {
   createOrder,
   findOrdersByUserId,
   findOrderByIdAndUserId,
+  findOrderById,
   updateOrderByIdAndUserId,
   updateOrderById,
+  updateOrderByIdAndStatus,
 };

@@ -1,12 +1,13 @@
 import app from './app.ts';
-import connectDB from './config/db.ts';
-import { startInventoryResultConsumer } from './consumers/inventory-result.consumer.ts';
+import { startInventoryConsumer } from './messaging/consumers/inventory.consumer.ts';
 import { env } from './config/env.ts';
-import { closeRabbitMQ, connectRabbitMQ } from './config/rabbitmq.ts';
+import { closeRabbitMQ, connectRabbitMQ } from './messaging/broker.ts';
+import mongoose from 'mongoose';
+import { connectMongoDB } from '@ecommerce/shared-database';
 
-await connectDB();
+await connectMongoDB(mongoose, env.MONGO_URI);
 await connectRabbitMQ();
-await startInventoryResultConsumer();
+await startInventoryConsumer();
 
 app.listen(env.PORT, () => {
   console.log(`Order service running on port ${env.PORT}`);

@@ -94,4 +94,17 @@ const decrementProductQuantity = async (
     .lean();
 };
 
-export { findProducts, findProductById, decrementProductQuantity };
+const incrementProductQuantity = async (
+  productId: string,
+  quantity: number,
+): Promise<ProductDocument | null> => {
+  return Product.findOneAndUpdate(
+    { _id: productId, isDeleted: false },
+    { $inc: { quantity } },
+    { returnDocument: 'after' },
+  )
+    .select('-isDeleted')
+    .lean();
+};
+
+export { findProducts, findProductById, decrementProductQuantity, incrementProductQuantity };

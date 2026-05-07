@@ -1,7 +1,6 @@
 import type { JwtPayload, SignOptions } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import {
-  generateAccessToken as createAccessToken,
-  generateRefreshToken as createRefreshToken,
   verifyAccessToken as decodeAccessToken,
   verifyRefreshToken as decodeRefreshToken,
 } from '@ecommerce/shared-auth';
@@ -10,13 +9,13 @@ import { env } from '../config/env.ts';
 const generateAccessToken = (id: string, role: string) => {
   const accessTokenExpiry = env.ACCESS_TOKEN_EXPIRY as NonNullable<SignOptions['expiresIn']>;
 
-  return createAccessToken({ id, role }, env.ACCESS_TOKEN_SECRET, accessTokenExpiry);
+  return jwt.sign({ id, role }, env.ACCESS_TOKEN_SECRET, { expiresIn: accessTokenExpiry });
 };
 
 const generateRefreshToken = (id: string, role: string) => {
   const refreshTokenExpiry = env.REFRESH_TOKEN_EXPIRY as NonNullable<SignOptions['expiresIn']>;
 
-  return createRefreshToken({ id, role }, env.REFRESH_TOKEN_SECRET, refreshTokenExpiry);
+  return jwt.sign({ id, role }, env.REFRESH_TOKEN_SECRET, { expiresIn: refreshTokenExpiry });
 };
 
 const verifyAccessToken = (token: string) => {

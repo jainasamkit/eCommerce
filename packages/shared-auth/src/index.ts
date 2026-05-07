@@ -1,5 +1,5 @@
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
-import jwt, { type JwtPayload, type SignOptions } from 'jsonwebtoken';
+import jwt, { type JwtPayload } from 'jsonwebtoken';
 import { ApiError } from '@ecommerce/shared-http';
 
 type AuthUser = {
@@ -7,26 +7,8 @@ type AuthUser = {
   role: string;
 };
 
-type JwtUserPayload = AuthUser;
-
 type RequestWithUser<TUser extends AuthUser = AuthUser> = Request & {
   user?: TUser;
-};
-
-const generateAccessToken = (
-  payload: JwtUserPayload,
-  secret: string,
-  expiresIn: NonNullable<SignOptions['expiresIn']>,
-) => {
-  return jwt.sign(payload, secret, { expiresIn });
-};
-
-const generateRefreshToken = (
-  payload: JwtUserPayload,
-  secret: string,
-  expiresIn: NonNullable<SignOptions['expiresIn']>,
-) => {
-  return jwt.sign(payload, secret, { expiresIn });
 };
 
 const verifyAccessToken = (token: string, secret: string) => {
@@ -86,8 +68,6 @@ const authoriseUser =
 export {
   authoriseUser,
   createAuthenticateUser,
-  generateAccessToken,
-  generateRefreshToken,
   verifyAccessToken,
   verifyRefreshToken,
 };
