@@ -1,6 +1,12 @@
 node_modules/
 .env
 dist/
-auth/public/temp/*
-!auth/public/temp/.gitkeep
-auth/postman/
+packages/*/dist/
+packages/*/src/*.js
+packages/*/src/*.js.map
+packages/*/src/*.d.ts
+packages/*/src/*.d.ts.map
+user/public/temp/*
+!user/public/temp/.gitkeep
+/postman/
+/postman

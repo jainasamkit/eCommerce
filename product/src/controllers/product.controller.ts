@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { ApiResponse } from '../utils/ApiResponse.ts';
+import { ApiResponse } from '@ecommerce/shared-http';
 import * as productService from '../services/product.service.ts';
 import type {
   GetProductsQuery,

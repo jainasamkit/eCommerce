@@ -1,0 +1,17 @@
+{
+  "watch": [
+    "src",
+    "../packages/shared-http/src",
+    "../packages/shared-auth/src",
+    "../packages/shared-database/src",
+    "../packages/shared-messaging/src"
+  ],
+  "ignore": [
+    "../packages/shared-http/dist/**",
+    "../packages/shared-auth/dist/**",
+    "../packages/shared-database/dist/**",
+    "../packages/shared-messaging/dist/**"
+  ],
+  "ext": "ts",
+  "exec": "cmd /c ..\\node_modules\\.bin\\tsc.cmd -p ..\\packages\\shared-http\\tsconfig.json && cmd /c ..\\node_modules\\.bin\\tsc.cmd -p ..\\packages\\shared-auth\\tsconfig.json && cmd /c ..\\node_modules\\.bin\\tsc.cmd -p ..\\packages\\shared-database\\tsconfig.json && cmd /c ..\\node_modules\\.bin\\tsc.cmd -p ..\\packages\\shared-messaging\\tsconfig.json && tsx src/index.ts"
+}

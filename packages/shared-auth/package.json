@@ -1,0 +1,21 @@
+{
+  "name": "@ecommerce/shared-auth",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@ecommerce/shared-http": "file:../shared-http"
+  },
+  "peerDependencies": {
+    "express": "^5.0.0",
+    "jsonwebtoken": "^9.0.0"
+  }
+}

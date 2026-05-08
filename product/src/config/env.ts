@@ -6,6 +6,9 @@ dotenv.config();
 const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3001),
   MONGO_URI: z.string().min(1, 'MONGO_URI is required'),
+  RABBITMQ_URL: z.string().min(1, 'RABBITMQ_URL is required'),
+  RABBITMQ_EXCHANGE: z.string().min(1, 'RABBITMQ_EXCHANGE is required'),
+  RABBITMQ_INVENTORY_QUEUE: z.string().min(1, 'RABBITMQ_INVENTORY_QUEUE is required'),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

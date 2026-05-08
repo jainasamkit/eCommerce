@@ -81,4 +81,30 @@ const findProductById = async (productId: string): Promise<ProductDocument | nul
   return Product.findOne({ _id: productId, isDeleted: false }).select('-isDeleted').lean();
 };
 
-export { findProducts, findProductById };
+const decrementProductQuantity = async (
+  productId: string,
+  quantity: number,
+): Promise<ProductDocument | null> => {
+  return Product.findOneAndUpdate(
+    { _id: productId, isDeleted: false, quantity: { $gte: quantity } },
+    { $inc: { quantity: -quantity } },
+    { returnDocument: 'after' },
+  )
+    .select('-isDeleted')
+    .lean();
+};
+
+const incrementProductQuantity = async (
+  productId: string,
+  quantity: number,
+): Promise<ProductDocument | null> => {
+  return Product.findOneAndUpdate(
+    { _id: productId, isDeleted: false },
+    { $inc: { quantity } },
+    { returnDocument: 'after' },
+  )
+    .select('-isDeleted')
+    .lean();
+};
+
+export { findProducts, findProductById, decrementProductQuantity, incrementProductQuantity };
