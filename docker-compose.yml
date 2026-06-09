@@ -1,0 +1,113 @@
+services:
+  mongo:
+    image: mongo:8
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  user:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: user
+    env_file:
+      - ./user/.env
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      MONGO_URI: mongodb://mongo:27017/ecommerce
+      RESET_PASSWORD_URL_BASE: http://localhost:3000/reset-password
+
+  product:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: product
+    env_file:
+      - ./product/.env
+    depends_on:
+      mongo:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      MONGO_URI: mongodb://mongo:27017/ecommerce
+      RABBITMQ_URL: amqp://rabbitmq:5672
+      RABBITMQ_EXCHANGE: ecommerce
+      RABBITMQ_INVENTORY_QUEUE: inventory-events
+
+  order:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: order
+    env_file:
+      - ./order/.env
+    depends_on:
+      mongo:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      product:
+        condition: service_started
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: 3002
+      MONGO_URI: mongodb://mongo:27017/ecommerce
+      RABBITMQ_URL: amqp://rabbitmq:5672
+      RABBITMQ_EXCHANGE: ecommerce
+      RABBITMQ_INVENTORY_RESULTS_QUEUE: inventory-results
+      PRODUCT_SERVICE_URL: http://product:3001
+      DEFAULT_SHIPPING_FEE: 0
+      DEFAULT_TAX_RATE: 0
+
+  cart:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: cart
+    env_file:
+      - ./cart/.env
+    depends_on:
+      mongo:
+        condition: service_healthy
+      product:
+        condition: service_started
+    ports:
+      - "3003:3003"
+    environment:
+      PORT: 3003
+      MONGO_URI: mongodb://mongo:27017/ecommerce
+      PRODUCT_SERVICE_URL: http://product:3001
+
+volumes:
+  mongo-data:

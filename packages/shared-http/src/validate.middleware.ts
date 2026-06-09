@@ -53,7 +53,6 @@ const validateQuery =
       return next(ApiError.badRequest('Validation failed', formatZodErrors(parsed.error)));
     }
 
-    req.query = parsed.data as Request['query'];
     next();
   };
 
