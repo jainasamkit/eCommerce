@@ -4,14 +4,25 @@ Docker Compose runs the project services together with MongoDB and RabbitMQ.
 
 ## Services
 
-| Service | Port | Description |
-| --- | --- | --- |
-| `user` | `3000` | User API |
-| `product` | `3001` | Product API |
-| `order` | `3002` | Order API |
-| `cart` | `3003` | Cart API |
-| `mongo` | `27017` | MongoDB database |
+| Service    | Port            | Description                       |
+| ---------- | --------------- | --------------------------------- |
+| `user`     | `3000`          | User API                          |
+| `product`  | `3001`          | Product API                       |
+| `order`    | `3002`          | Order API                         |
+| `cart`     | `3003`          | Cart API                          |
+| `mongo`    | `27017`         | MongoDB database                  |
 | `rabbitmq` | `5672`, `15672` | RabbitMQ broker and management UI |
+
+## API Documentation
+
+Each API service exposes Swagger UI and the raw OpenAPI JSON:
+
+| Service   | Swagger UI                       | OpenAPI JSON                          |
+| --------- | -------------------------------- | ------------------------------------- |
+| `user`    | `http://localhost:3000/api-docs` | `http://localhost:3000/api-docs.json` |
+| `product` | `http://localhost:3001/api-docs` | `http://localhost:3001/api-docs.json` |
+| `order`   | `http://localhost:3002/api-docs` | `http://localhost:3002/api-docs.json` |
+| `cart`    | `http://localhost:3003/api-docs` | `http://localhost:3003/api-docs.json` |
 
 ## Environment Files
 
